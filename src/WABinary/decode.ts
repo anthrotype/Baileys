@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 import { inflate } from 'zlib'
 import * as constants from './constants'
-import { jidEncode, type JidServer, WAJIDDomains } from './jid-utils'
+import { jidEncode, normalizeJid, type JidServer, WAJIDDomains } from './jid-utils'
 import type { BinaryNode, BinaryNodeCodingOptions } from './types'
 
 const inflatePromise = promisify(inflate)
@@ -142,7 +142,8 @@ export const decodeDecompressedBinaryNode = (
 		const i = readString(readByte()!)
 		const j = readString(readByte()!)
 		if (j) {
-			return (i || '') + '@' + j
+			// Normalize to fix malformed JIDs with double @ symbols
+			return normalizeJid((i || '') + '@' + j)!
 		}
 
 		throw new Error('invalid jid pair: ' + i + ', ' + j)
@@ -164,7 +165,8 @@ export const decodeDecompressedBinaryNode = (
 			server = 'hosted.lid'
 		}
 
-		return jidEncode(user, server, device)
+		// Normalize to fix any malformed user strings that might contain @
+		return normalizeJid(jidEncode(user, server, device))!
 	}
 
 	const readString = (tag: number): string => {

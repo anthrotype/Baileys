@@ -1,5 +1,45 @@
 export const S_WHATSAPP_NET = '@s.whatsapp.net'
 export const OFFICIAL_BIZ_JID = '16505361212@c.us'
+
+/**
+ * Fix malformed JIDs that have double @ symbols (e.g., "xxx@lid@s.whatsapp.net")
+ * This can happen due to encoding/decoding issues with LID handling.
+ * Returns the JID with only the first valid suffix.
+ */
+export const normalizeJid = (jid: string | undefined): string | undefined => {
+	if (!jid) return jid
+
+	// Check for malformed pattern with multiple @ symbols
+	const atCount = (jid.match(/@/g) || []).length
+	if (atCount <= 1) return jid // Normal JID
+
+	// Has multiple @ - fix it by keeping only the first valid suffix
+	const firstAtIndex = jid.indexOf('@')
+	const userPart = jid.slice(0, firstAtIndex)
+	const rest = jid.slice(firstAtIndex + 1)
+
+	// Determine which suffix to use based on what comes after the first @
+	if (rest.startsWith('lid')) {
+		return `${userPart}@lid`
+	} else if (rest.startsWith('s.whatsapp.net')) {
+		return `${userPart}@s.whatsapp.net`
+	} else if (rest.startsWith('g.us')) {
+		return `${userPart}@g.us`
+	} else if (rest.startsWith('c.us')) {
+		return `${userPart}@c.us`
+	} else if (rest.startsWith('broadcast')) {
+		return `${userPart}@broadcast`
+	} else if (rest.startsWith('newsletter')) {
+		return `${userPart}@newsletter`
+	} else if (rest.startsWith('hosted.lid')) {
+		return `${userPart}@hosted.lid`
+	} else if (rest.startsWith('hosted')) {
+		return `${userPart}@hosted`
+	}
+
+	// Unknown pattern - return as-is
+	return jid
+}
 export const SERVER_JID = 'server@c.us'
 export const PSA_WID = '0@c.us'
 export const STORIES_JID = 'status@broadcast'
