@@ -580,7 +580,7 @@ export const downloadEncryptedContent = async (
 
 	let remainingBytes = Buffer.from([])
 
-	let aes: Crypto.Decipher
+	let aes: ReturnType<typeof Crypto.createDecipheriv>
 
 	const pushBytes = (bytes: Buffer, push: (bytes: Buffer) => void) => {
 		if (startByte || endByte) {
@@ -761,7 +761,7 @@ const uploadWithFetch = async ({
 }: UploadParams): Promise<MediaUploadResult | undefined> => {
 	// Convert Node.js Readable to Web ReadableStream
 	const nodeStream = createReadStream(filePath)
-	const webStream = Readable.toWeb(nodeStream) as ReadableStream
+	const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream
 
 	const response = await fetch(url, {
 		dispatcher: agent,
