@@ -93,6 +93,8 @@ export const jidEncode = (user: string | number | null, server: JidServer, devic
 }
 
 export const jidDecode = (jid: string | undefined): FullJid | undefined => {
+	// Normalize first to fix malformed JIDs with multiple @ symbols
+	jid = normalizeJid(jid)
 	// todo: investigate how to implement hosted ids in this case
 	const sepIdx = typeof jid === 'string' ? jid.indexOf('@') : -1
 	if (sepIdx < 0) {
