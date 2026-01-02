@@ -397,10 +397,16 @@ const processMessage = async (
 				const { pnToLidMappings, chatDbMigrationTimestamp } =
 					proto.LIDMigrationMappingSyncPayload.decode(encodedPayload)
 				logger?.debug({ pnToLidMappings, chatDbMigrationTimestamp }, 'got lid mappings and chat db migration timestamp')
-				const pairs = []
+				const pairs: { lid: string; pn: string }[] = []
 				for (const { pn, latestLid, assignedLid } of pnToLidMappings) {
 					const lid = latestLid || assignedLid
-					pairs.push({ lid: `${lid}@lid`, pn: `${pn}@s.whatsapp.net` })
+					// Fix: Prevent malformed JIDs when values already contain @ suffix
+					// This can cause "xml-not-well-formed" stream errors (issue #2074)
+					const lidStr = String(lid)
+					const pnStr = String(pn)
+					const lidJid = lidStr.includes('@') ? lidStr : `${lidStr}@lid`
+					const pnJid = pnStr.includes('@') ? pnStr : `${pnStr}@s.whatsapp.net`
+					pairs.push({ lid: lidJid, pn: pnJid })
 				}
 
 				await signalRepository.lidMapping.storeLIDPNMappings(pairs)
