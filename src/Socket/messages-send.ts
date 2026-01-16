@@ -1221,6 +1221,15 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					} as BinaryNode)
 				}
 
+				// Add default appdata meta tag for regular messages to enable push notifications
+				// Without this, recipients may not receive push notifications (see issue #2246)
+				if (!additionalNodes.some(n => n.tag === 'meta')) {
+					additionalNodes.push({
+						tag: 'meta',
+						attrs: { appdata: 'default' }
+					} as BinaryNode)
+				}
+
 				await relayMessage(jid, fullMsg.message!, {
 					messageId: fullMsg.key.id!,
 					useCachedGroupMetadata: options.useCachedGroupMetadata,
